@@ -19,8 +19,16 @@ pub enum ZectrixPublishError {
     InvalidConfiguration(String),
     #[error("无法编码月历 PNG 图像")]
     Image,
-    #[error("ZECTRIX 云端接口暂时不可用")]
-    Unavailable,
+    #[error("网络请求失败：{0}")]
+    Network(String),
+    #[error("ZECTRIX 云端返回错误：HTTP {status}（code: {code}, message: {message}）")]
+    ApiError {
+        status: u16,
+        code: i64,
+        message: String,
+    },
+    #[error("ZECTRIX 云端接口暂时不可用：{0}")]
+    Unavailable(String),
 }
 
 /// 校验月历通道：允许 1、2、4、5 页，默认拦截已被 Codex 额度雷达占用的第 3 页
@@ -86,6 +94,10 @@ impl ZectrixPublisher {
 #[derive(Deserialize)]
 struct ApiCodeResponse {
     code: i64,
+    #[serde(default)]
+    message: Option<String>,
+    #[serde(default)]
+    msg: Option<String>,
 }
 
 impl FramePublisher for ZectrixPublisher {
@@ -115,15 +127,28 @@ impl FramePublisher for ZectrixPublisher {
             ))
             .multipart(form)
             .send()
-            .map_err(|_| ZectrixPublishError::Unavailable)?;
-        if !response.status().is_success() {
-            return Err(ZectrixPublishError::Unavailable);
+            .map_err(|e| ZectrixPublishError::Network(e.to_string()))?;
+        let status = response.status();
+        if !status.is_success() {
+            let status_code = status.as_u16();
+            let body_text = response.text().unwrap_or_default();
+            return Err(ZectrixPublishError::Unavailable(format!(
+                "HTTP {status_code}: {body_text}"
+            )));
         }
         let payload: ApiCodeResponse = response
             .json()
-            .map_err(|_| ZectrixPublishError::Unavailable)?;
+            .map_err(|e| ZectrixPublishError::Unavailable(format!("响应解析失败: {e}")))?;
         if payload.code != 0 {
-            return Err(ZectrixPublishError::Unavailable);
+            let message = payload
+                .message
+                .or(payload.msg)
+                .unwrap_or_else(|| "未知云端错误".into());
+            return Err(ZectrixPublishError::ApiError {
+                status: status.as_u16(),
+                code: payload.code,
+                message,
+            });
         }
         Ok(())
     }

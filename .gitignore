@@ -1,0 +1,5 @@
+/target
+/.trash
+/.env
+/preview_*.png
+/calendar_preview.png
