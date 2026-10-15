@@ -493,9 +493,9 @@ fn draw_calendar_dashboard(target_date: NaiveDate, page_id: u8) -> (Vec<u8>, Vec
         "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日",
     ];
 
-    // 1. 极窄边距顶栏 (X: 3..396, Y: 3..27, W: 393, H: 24)
-    disp.fill_rect(3, 3, 393, 24, true);
-    for (cx, cy) in [(3, 3), (395, 3), (3, 26), (395, 26)] {
+    // 1. 极窄边距顶栏 (X: 3..396, Y: 3..27, W: 394, H: 24)
+    disp.fill_rect(3, 3, 394, 24, true);
+    for (cx, cy) in [(3, 3), (396, 3), (3, 26), (396, 26)] {
         disp.draw_pixel(cx, cy, false);
     }
 
@@ -507,10 +507,10 @@ fn draw_calendar_dashboard(target_date: NaiveDate, page_id: u8) -> (Vec<u8>, Vec
     draw_cjk_12x12(&mut disp, "农历黄历", 145, 9, false, TextAlign::Left, 3);
     visible.push("月度日历 · 农历黄历".into());
 
-    disp.stroke_rect(294, 6, 98, 18, 1, false);
-    disp.fill_rect(300, 12, 6, 6, false);
+    disp.stroke_rect(295, 6, 98, 18, 1, false);
+    disp.fill_rect(301, 12, 6, 6, false);
     let page_badge = format!("P{page_id} UTC+8");
-    draw_micro_pixel_str(&mut disp, page_badge.as_str(), 312, 12, 1, 1, false, 2);
+    draw_micro_pixel_str(&mut disp, page_badge.as_str(), 313, 12, 1, 1, false, 2);
     visible.push(page_badge);
 
     // 2. 左侧今日公历 + 农历黄历详情卡 (X: 3, Y: 31, W: 130, H: 265)
@@ -665,7 +665,7 @@ fn draw_calendar_dashboard(target_date: NaiveDate, page_id: u8) -> (Vec<u8>, Vec
         let (dw_cell, dh_cell, dt_cell, gap_cell) = (7_u32, 11_u32, 2_u32, 2_i32);
         let num_w = (d_str.len() as i32) * (dw_cell as i32) + ((d_str.len() as i32) - 1) * gap_cell;
         let nx = cx + (col_w - num_w) / 2;
-        let ny = cy + 4;
+        let ny = cy + 6;
 
         if d == day {
             disp.fill_rect(cx + 1, cy + 1, (col_w - 1) as u32, (row_h - 1) as u32, true);
@@ -678,7 +678,7 @@ fn draw_calendar_dashboard(target_date: NaiveDate, page_id: u8) -> (Vec<u8>, Vec
                 disp.draw_pixel(px_c, py_c, false);
             }
             draw_block_number_str(&mut disp, d_str.as_str(), nx, ny, dw_cell, dh_cell, dt_cell, gap_cell, false, false);
-            draw_cjk_12x12(&mut disp, lunar_sub.as_str(), cx + col_w / 2, cy + 18, false, TextAlign::Center, 2);
+            draw_cjk_12x12(&mut disp, lunar_sub.as_str(), cx + col_w / 2, cy + 20, false, TextAlign::Center, 2);
         } else {
             if d < day {
                 for dy_t in 0..4_i32 {
@@ -690,7 +690,7 @@ fn draw_calendar_dashboard(target_date: NaiveDate, page_id: u8) -> (Vec<u8>, Vec
                 disp.fill_rect(cx + 5, cy + row_h - 2, (col_w - 9) as u32, 1, true);
             }
             draw_block_number_str(&mut disp, d_str.as_str(), nx, ny, dw_cell, dh_cell, dt_cell, gap_cell, false, true);
-            draw_cjk_12x12(&mut disp, lunar_sub.as_str(), cx + col_w / 2, cy + 18, true, TextAlign::Center, 2);
+            draw_cjk_12x12(&mut disp, lunar_sub.as_str(), cx + col_w / 2, cy + 20, true, TextAlign::Center, 2);
         }
     }
 
