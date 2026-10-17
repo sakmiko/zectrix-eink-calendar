@@ -1626,10 +1626,15 @@ mod tests {
         assert_eq!(l_2023_m3_start.day_text, "初一");
         assert!(!l_2023_m3_start.is_leap_month);
 
-        // 2023年三月三十 (2023-05-19)
-        let l_2023_m3_end = solar_to_lunar(NaiveDate::from_ymd_opt(2023, 5, 19).unwrap());
+        // 2023年三月廿九 (2023-05-18，三月为小月29天)
+        let l_2023_m3_end = solar_to_lunar(NaiveDate::from_ymd_opt(2023, 5, 18).unwrap());
         assert_eq!(l_2023_m3_end.month_text, "三月");
-        assert_eq!(l_2023_m3_end.day_text, "三十");
+        assert_eq!(l_2023_m3_end.day_text, "廿九");
+
+        // 2023年四月初一 (2023-05-19)
+        let l_2023_m4_start = solar_to_lunar(NaiveDate::from_ymd_opt(2023, 5, 19).unwrap());
+        assert_eq!(l_2023_m4_start.month_text, "四月");
+        assert_eq!(l_2023_m4_start.day_text, "初一");
 
         // 2025年闰六月初一 (2025-07-25)
         let l_2025_leap = solar_to_lunar(NaiveDate::from_ymd_opt(2025, 7, 25).unwrap());
