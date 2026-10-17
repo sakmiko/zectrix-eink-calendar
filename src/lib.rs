@@ -514,23 +514,23 @@ pub fn solar_to_lunar(date: NaiveDate) -> LunarDateInfo {
 
     let leap_m = lunar_leap_month(lunar_year);
     let mut is_leap = false;
+    let mut leap_processed = false;
     let mut lunar_month = 1_u32;
 
     while lunar_month <= 12 {
-        let mdays = if leap_m > 0 && lunar_month == (leap_m + 1) && !is_leap {
+        let mdays = if leap_m > 0 && lunar_month == (leap_m + 1) && !leap_processed {
             lunar_month -= 1;
             is_leap = true;
+            leap_processed = true;
             lunar_leap_days(lunar_year)
         } else {
+            is_leap = false;
             lunar_month_days(lunar_year, lunar_month)
         };
         if offset < mdays {
             break;
         }
         offset -= mdays;
-        if is_leap && lunar_month == leap_m {
-            is_leap = false;
-        }
         lunar_month += 1;
     }
 
@@ -1612,6 +1612,30 @@ mod tests {
         assert_eq!(lunar.month_text, "九月");
         assert_eq!(lunar.day_text, "初六");
         assert_eq!(lunar.ganzhi_day, "壬戌日");
+
+        // 验证有闰月的年份（2023年闰二月，2025年闰六月）全范围精确性
+        // 2023年闰二月初一 (2023-03-22)
+        let l_2023_leap_start = solar_to_lunar(NaiveDate::from_ymd_opt(2023, 3, 22).unwrap());
+        assert_eq!(l_2023_leap_start.month_text, "闰二月");
+        assert_eq!(l_2023_leap_start.day_text, "初一");
+        assert!(l_2023_leap_start.is_leap_month);
+
+        // 2023年闰二月后紧接着的三月初一 (2023-04-20)
+        let l_2023_m3_start = solar_to_lunar(NaiveDate::from_ymd_opt(2023, 4, 20).unwrap());
+        assert_eq!(l_2023_m3_start.month_text, "三月");
+        assert_eq!(l_2023_m3_start.day_text, "初一");
+        assert!(!l_2023_m3_start.is_leap_month);
+
+        // 2023年三月三十 (2023-05-19)
+        let l_2023_m3_end = solar_to_lunar(NaiveDate::from_ymd_opt(2023, 5, 19).unwrap());
+        assert_eq!(l_2023_m3_end.month_text, "三月");
+        assert_eq!(l_2023_m3_end.day_text, "三十");
+
+        // 2025年闰六月初一 (2025-07-25)
+        let l_2025_leap = solar_to_lunar(NaiveDate::from_ymd_opt(2025, 7, 25).unwrap());
+        assert_eq!(l_2025_leap.month_text, "闰六月");
+        assert_eq!(l_2025_leap.day_text, "初一");
+        assert!(l_2025_leap.is_leap_month);
 
         let oct = render_calendar(
             CalendarState {
