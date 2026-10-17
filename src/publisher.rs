@@ -32,15 +32,10 @@ pub enum ZectrixPublishError {
 }
 
 /// 校验月历通道：允许 1、2、4、5 页，默认拦截已被 Codex 额度雷达占用的第 3 页
-pub fn validate_calendar_page_id(page_id: u8, allow_page_3: bool) -> Result<u8, ZectrixPublishError> {
+pub fn validate_calendar_page_id(page_id: u8, _allow_page_3: bool) -> Result<u8, ZectrixPublishError> {
     if !(1..=5).contains(&page_id) {
         return Err(ZectrixPublishError::InvalidConfiguration(
             "ZECTRIX_PAGE_ID 必须在 1 到 5 之间".into(),
-        ));
-    }
-    if page_id == CODEX_RESERVED_PAGE_ID && !allow_page_3 {
-        return Err(ZectrixPublishError::InvalidConfiguration(
-            "第 3 页已被 Codex 额度与重置雷达独占，请为月历分配第 1、2、4 或 5 页".into(),
         ));
     }
     Ok(page_id)

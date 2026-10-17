@@ -226,7 +226,7 @@ fn handle_control_client(mut stream: TcpStream, ctrl: &Arc<RuntimeControl>) {
             let body = format!("{{\"status\":\"ok\",\"page_id\":{new_page}}}");
             write_http_response(&mut stream, 200, "application/json", body.as_bytes());
         } else {
-            let body = br#"{"status":"error","message":"invalid or reserved page_id (allowed: 1,2,4,5)"}"#;
+            let body = br#"{"status":"error","message":"invalid page_id (allowed: 1..=5)"}"#;
             write_http_response(&mut stream, 400, "application/json", body);
         }
     } else if path.starts_with("/preview.png") {
