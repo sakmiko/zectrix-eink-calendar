@@ -54,13 +54,37 @@
 
 ---
 
-## 环境变量配置
+## CLI 交互控制模式 (跨平台支持 Windows & Linux)
+
+本伴侣程序原生支持多种 CLI 控制命令：
+
+```bash
+# 1. 帮助与版本说明
+zectrix_calendar_companion --help
+zectrix_calendar_companion --version
+
+# 2. 本地离线渲染指定日期月历并导出 400x300 PNG 预览图 (不产生网络请求)
+zectrix_calendar_companion --preview 2026-10-21 calendar_preview.png
+
+# 3. 本地探活检查 (通过控制端探针查询当前状态)
+zectrix_calendar_companion --check
+
+# 4. 立即触发月历重新渲染并推送上屏
+zectrix_calendar_companion --trigger-refresh
+
+# 5. 指定环境配置文件运行
+zectrix_calendar_companion --env /path/to/.env
+```
+
+---
+
+## 环境变量配置说明
 
 请参考根目录下的 `.env.example` 文件：
 
 | 变量名 | 默认值 | 说明 |
 | :--- | :--- | :--- |
-| `ZECTRIX_DEVICE_ID` | `20:6E:F1:B6:6A:C4` | ZECTRIX NOTE4 物理设备 MAC/ID |
+| `ZECTRIX_DEVICE_ID` | `AA:BB:CC:DD:EE:FF` | ZECTRIX NOTE4 物理设备 MAC/ID |
 | `ZECTRIX_PAGE_ID` | `1` | 推送页面通道（1、2、4 或 5；3 已被 Codex 独占） |
 | `ZECTRIX_API_BASE` | `https://cloud.zectrix.com` | 极趣云开放 API 服务基地址 |
 | `ZECTRIX_API_KEY` | *(无)* | 极趣云 API 认证密钥（直接注入） |

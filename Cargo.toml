@@ -1,6 +1,6 @@
 [package]
 name = "zectrix-eink-calendar"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 license = "MIT"
 description = "Pure-Rust 400x300 1-bit E-Ink Monthly & Lunar Calendar for ZECTRIX NOTE4 with HTTP Health/Control API"

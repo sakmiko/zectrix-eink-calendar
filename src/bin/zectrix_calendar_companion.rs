@@ -70,6 +70,26 @@ fn main() {
 fn dispatch_cli() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
 
+    // 0. 帮助说明：--help / -h / help
+    if args.iter().any(|a| a == "--help" || a == "-h" || a == "help") {
+        print_cli_help();
+        return Ok(());
+    }
+
+    // 0.1 版本查询：--version / -v / version
+    if args.iter().any(|a| a == "--version" || a == "-v" || a == "version") {
+        println!("zectrix_calendar_companion v{}", env!("CARGO_PKG_VERSION"));
+        println!("ZECTRIX NOTE4 400x300 1-bit E-Ink Lunar/Solar Calendar Companion");
+        return Ok(());
+    }
+
+    // 0.2 环境配置文件指定：--env <path>
+    if let Some(pos) = args.iter().position(|a| a == "--env")
+        && let Some(env_file) = args.get(pos + 1)
+    {
+        load_custom_env_file(env_file);
+    }
+
     // 1. 本地预览模式：zectrix_calendar_companion --preview [YYYY-MM-DD] [output.png]
     if let Some(pos) = args.iter().position(|a| a == "--preview") {
         let date_arg = args.get(pos + 1).map(String::as_str);
@@ -111,6 +131,52 @@ fn dispatch_cli() -> Result<(), Box<dyn Error>> {
 
     let run_once = args.iter().any(|a| a == "--once");
     run_daemon(run_once)
+}
+
+fn print_cli_help() {
+    println!(
+        r#"ZECTRIX NOTE4 农历/节气月历伴侣 CLI (v{})
+
+用法:
+  zectrix_calendar_companion [命令/选项]
+
+基础选项:
+  --help, -h               显示此帮助信息
+  --version, -v            显示版本信息
+  --env <path>             指定自定义环境配置文件路径（默认加载 .env / 系统环境）
+
+操作模式:
+  --preview [日期] [文件]  在本地离线生成 400x300 1-bit 月历预览图（日期可选 YYYY-MM-DD，默认今天；默认 calendar_preview.png）
+  --check                  查询后台常驻服务的健康状态探针（默认 127.0.0.1:9596）
+  --trigger-refresh        触发后台服务立即重绘今天月历并推送上屏
+  --once                   单次运行：推送到极趣云屏幕后立即退出
+
+常驻运行:
+  直接运行程序无参数时，将作为守护服务启动，每天北京时间 00:00:05 自动切换新一天日历并推送。
+"#,
+        env!("CARGO_PKG_VERSION")
+    );
+}
+
+fn load_custom_env_file(path: &str) {
+    use std::fs;
+    if let Ok(content) = fs::read_to_string(path) {
+        for line in content.lines() {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            if let Some((k, v)) = line.split_once('=') {
+                let key = k.trim();
+                let val = v.trim().trim_matches('"').trim_matches('\'');
+                if !key.is_empty() && std::env::var(key).is_err() {
+                    unsafe {
+                        std::env::set_var(key, val);
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// 通过本机控制端口发送外部探活或即时重绘指令

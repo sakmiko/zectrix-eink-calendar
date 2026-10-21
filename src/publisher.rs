@@ -7,7 +7,7 @@ use thiserror::Error;
 use crate::CalendarOutput;
 
 /// 默认绑定的 ZECTRIX NOTE4 物理设备 ID
-pub const DEFAULT_DEVICE_ID: &str = "20:6E:F1:B6:6A:C4";
+pub const DEFAULT_DEVICE_ID: &str = "";
 /// 默认月历推送通道（第 1 页）
 pub const DEFAULT_PAGE_ID: u8 = 1;
 /// 第 3 页已被 Codex 额度监控与重置雷达独占常驻
