@@ -69,6 +69,14 @@ fn main() {
 
 fn dispatch_cli() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
+    // 默认读取当前目录 .env，显式指定 --env 时只读取指定文件；系统环境优先。
+    if let Some(pos) = args.iter().position(|a| a == "--env")
+        && let Some(env_file) = args.get(pos + 1)
+    {
+        load_custom_env_file(env_file);
+    } else {
+        load_custom_env_file(".env");
+    }
 
     // 0. 帮助说明：--help / -h / help
     if args.iter().any(|a| a == "--help" || a == "-h" || a == "help") {
@@ -81,13 +89,6 @@ fn dispatch_cli() -> Result<(), Box<dyn Error>> {
         println!("zectrix_calendar_companion v{}", env!("CARGO_PKG_VERSION"));
         println!("ZECTRIX NOTE4 400x300 1-bit E-Ink Lunar/Solar Calendar Companion");
         return Ok(());
-    }
-
-    // 0.2 环境配置文件指定：--env <path>
-    if let Some(pos) = args.iter().position(|a| a == "--env")
-        && let Some(env_file) = args.get(pos + 1)
-    {
-        load_custom_env_file(env_file);
     }
 
     // 1. 本地预览模式：zectrix_calendar_companion --preview [YYYY-MM-DD] [output.png]
@@ -211,6 +212,14 @@ fn spawn_control_server(ctrl: Arc<RuntimeControl>) -> Option<thread::JoinHandle<
         Ok(v) => v,
         Err(_) => "127.0.0.1:9596".to_owned(),
     };
+    // 控制端提供页面切换和推送功能，但没有鉴权，不允许绑定公网/LAN 地址。
+    if !addr
+        .parse::<std::net::SocketAddr>()
+        .is_ok_and(|address| address.ip().is_loopback())
+    {
+        eprintln!("控制端只能监听 loopback 地址：{addr}");
+        return None;
+    }
     let listener = match TcpListener::bind(&addr) {
         Ok(l) => l,
         Err(e) => {

@@ -32,13 +32,34 @@ pub enum ZectrixPublishError {
 }
 
 /// 校验月历通道：允许 1、2、4、5 页，默认拦截已被 Codex 额度雷达占用的第 3 页
-pub fn validate_calendar_page_id(page_id: u8, _allow_page_3: bool) -> Result<u8, ZectrixPublishError> {
+pub fn validate_calendar_page_id(page_id: u8, allow_page_3: bool) -> Result<u8, ZectrixPublishError> {
     if !(1..=5).contains(&page_id) {
         return Err(ZectrixPublishError::InvalidConfiguration(
             "ZECTRIX_PAGE_ID 必须在 1 到 5 之间".into(),
         ));
     }
+    if page_id == CODEX_RESERVED_PAGE_ID && !allow_page_3 {
+        return Err(ZectrixPublishError::InvalidConfiguration(
+            "第 3 页已被 Codex 看板预留；如需覆盖请显式设置 ALLOW_PAGE_3_OVERRIDE=true".into(),
+        ));
+    }
     Ok(page_id)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn codex_page_is_reserved_without_explicit_override() {
+        assert!(validate_calendar_page_id(3, false).is_err());
+        assert_eq!(validate_calendar_page_id(3, true).unwrap(), 3);
+        for page in [1, 2, 4, 5] {
+            assert_eq!(validate_calendar_page_id(page, false).unwrap(), page);
+        }
+        assert!(validate_calendar_page_id(0, true).is_err());
+        assert!(validate_calendar_page_id(6, true).is_err());
+    }
 }
 
 pub trait FramePublisher {
